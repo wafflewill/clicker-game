@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Money Counter Game with Ads and Cooldown</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f0f0f0;
+    margin: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+  }
+
+  .container {
+    display: flex;
+    max-width: 900px;
+    width: 100%;
+  }
+
+  .left-section, .right-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    padding: 30px 40px;
+    box-sizing: border-box;
+  }
+
+  .left-section {
+    flex: 2;
+  }
+
+  .right-section {
+    flex: 1;
+    max-width: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+  }
+
+  #money {
+    font-size: 3em;
+    font-weight: bold;
+    margin-bottom: 25px;
+    text-align: left;
+  }
+
+  #upgradeBtn {
+    font-size: 1.6em;
+    padding: 15px 30px;
+    cursor: pointer;
+    border-radius: 8px;
+    border: none;
+    background-color: #2196F3;
+    color: white;
+    transition: background-color 0.3s ease;
+    min-width: 260px;
+    margin-bottom: 30px;
+  }
+  #upgradeBtn:hover:not(:disabled) {
+    background-color: #0b7dda;
+  }
+  #upgradeBtn:disabled {
+    opacity: 0.5;
+    cursor: default;
+    background-color: #888;
+  }
+
+  .button-group {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+  }
+
+  button {
+    font-size: 1.8em;
+    padding: 15px 30px;
+    cursor: pointer;
+    border-radius: 8px;
+    border: none;
+    background-color: #4CAF50;
+    color: white;
+    transition: background-color 0.3s ease;
+    min-width: 120px;
+  }
+  button:hover:not(:disabled) {
+    background-color: #45a049;
+  }
+  button:disabled {
+    opacity: 0.5;
+    cursor: default;
+    background-color: #888;
+  }
+
+  #timer {
+    font-size: 1.4em;
+    color: #555;
+    margin-bottom: 15px;
+    text-align: left;
+  }
+
+  #claimBtn {
+    margin-top: 10px;
+    min-width: 260px;
+  }
+
+  #codeSection {
+    display: flex;
+    gap: 15px;
+    margin-top: 40px;
+  }
+
+  #codeInput {
+    font-size: 1.6em;
+    padding: 10px 15px;
+    width: 180px;
+    border-radius: 6px;
+    border: 2px solid #ccc;
+    outline: none;
+    box-sizing: border-box;
+  }
+  #codeInput:focus {
+    border-color: #4CAF50;
+  }
+
+  #unlockBtn {
+    background-color: #007BFF;
+    min-width: 140px;
+  }
+  #unlockBtn:hover:not(:disabled) {
+    background-color: #0069d9;
+  }
+
+  /* Ad Section */
+  #adBox {
+    background: #e0f7fa;
+    border: 2px dashed #00796b;
+    border-radius: 12px;
+    width: 100%;
+    padding: 30px 20px;
+    text-align: center;
+    user-select: none;
+  }
+
+  #adBox h2 {
+    margin-bottom: 20px;
+    color: #004d40;
+  }
+
+  #adButton {
+    font-size: 1.5em;
+    padding: 20px 40px;
+    background-color: #00796b;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  #adButton:hover:not(:disabled) {
+    background-color: #004d40;
+  }
+  #adButton:disabled {
+    cursor: default;
+    background-color: #555;
+    opacity: 0.6;
+  }
+
+  #adClicks {
+    margin-top: 15px;
+    font-size: 1.2em;
+    color: #004d40;
+  }
+
+  #adCooldown {
+    margin-top: 10px;
+    font-size: 1.1em;
+    color: #00796b;
+    font-weight: bold;
+  }
+
+  #resetBtn {
+    margin-top: 20px;
+    font-size: 1.3em;
+    padding: 12px 28px;
+    border-radius: 10px;
+    background-color: #e53935;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  #resetBtn:hover {
+    background-color: #ab000d;
+  }
+
+  #gameDesc {
+    margin-top: 15px;
+    font-size: 1.1em;
+    color: #00695c;
+    line-height: 1.4em;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="left-section">
+    <div id="money">Money: £0</div>
+
+    <button id="upgradeBtn">Upgrade Click Power<br>Cost: £50</button>
+
+    <div class="button-group">
+      <button id="btn1">Add +1</button>
+      <button id="btn10" disabled>Add +10 (locked)</button>
+      <button id="btn50" disabled>Add +50 (locked)</button>
+    </div>
+
+    <div id="timer">Claim available in: 60s</div>
+    <button id="claimBtn" disabled>Claim £200</button>
+
+    <div id="codeSection">
+      <input type="text" id="codeInput" placeholder="Enter unlock code" />
+      <button id="unlockBtn">Unlock/Lock</button>
+    </div>
+  </div>
+
+  <div class="right-section">
+    <div id="adBox">
+      <h2>Watch Ad</h2>
+      <button id="adButton">Click Me!</button>
+      <div id="adClicks">Clicks: 0 / 50</div>
+      <div id="adCooldown" style="display:none;">Ad cooldown: 2:00</div>
+      <div style="margin-top:10px; font-size:1em; color:#00695c;">
+        Click the button 50 times to earn a random reward between £100 and £1000!<br />
+        Higher rewards are rarer.
+      </div>
+
+      <button id="resetBtn">Reset Progress</button>
+
+      <p id="gameDesc">
+        In this clicker game you must get money to buy stuff to get more money.
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+  let money = 0;
+  let unlocked = false; // track if buttons are unlocked or locked
+  let clickPower = 0; // additional click power (adds +10 per upgrade)
+  let upgradeCost = 50; // initial upgrade cost
+
+  const moneyDisplay = document.getElementById('money');
+  const btn1 = document.getElementById('btn1');
+  const btn10 = document.getElementById('btn10');
+  const btn50 = document.getElementById('btn50');
+  const codeInput = document.getElementById('codeInput');
+  const unlockBtn = document.getElementById('unlockBtn');
+  const claimBtn = document.getElementById('claimBtn');
+  const timerDisplay = document.getElementById('timer');
+  const upgradeBtn = document.getElementById('upgradeBtn');
+
+  const adButton = document.getElementById('adButton');
+  const adClicksDisplay = document.getElementById('adClicks');
+  const adCooldownDisplay = document.getElementById('adCooldown');
+  const resetBtn = document.getElementById('resetBtn');
+
+  let adClicks = 0;
+  let adCooldownSeconds = 0;
+  let adCooldownInterval;
+
+  function updateMoneyDisplay() {
+    moneyDisplay.textContent = 'Money: £' + money;
+  }
+
+  function setButtonsLocked(locked) {
+    btn10.disabled = locked;
+    btn50.disabled = locked;
+    btn10.textContent = locked ? 'Add +10 (locked)' : 'Add +10';
+    btn50.textContent = locked ? 'Add +50 (locked)' : 'Add +50';
+    unlocked = !locked;
+  }
+
+  function updateUpgradeButton() {
+    upgradeBtn.textContent = `Upgrade Click Power\nCost: £${upgradeCost}`;
+    upgradeBtn.disabled = money < upgradeCost;
+  }
+
+  btn1.addEventListener('click', () => {
+    money += 1 + clickPower;
+    updateMoneyDisplay();
+    updateUpgradeButton();
+  });
+
+  btn10.addEventListener('click', () => {
+    money += 10 + clickPower;
+    updateMoneyDisplay();
+    updateUpgradeButton();
+  });
+
+  btn50.addEventListener('click', () => {
+    money += 50 + clickPower;
+    updateMoneyDisplay();
+    updateUpgradeButton();
+  });
+
+  unlockBtn.addEventListener('click', () => {
+    const code = codeInput.value.trim();
+    if (code === '909') {
+      if (unlocked) {
+        setButtonsLocked(true);
+        alert('Buttons locked again!');
+      } else {
+        setButtonsLocked(false);
+        alert('Buttons unlocked!');
+      }
+      codeInput.value = '';
+    } else {
+      alert('Incorrect code. Try again.');
+    }
+  });
+
+  upgradeBtn.addEventListener('click', () => {
+    if (money >= upgradeCost) {
+      money -= upgradeCost;
+      clickPower += 10;
+      upgradeCost = Math.floor(upgradeCost * 1.5); // increase cost by 50% each time
+      updateMoneyDisplay();
+      updateUpgradeButton();
+    }
+  });
+
+  // Timer for claim button (60 seconds)
+  let claimAvailable = false;
+  let countdown = 60; // seconds
+
+  function updateTimer() {
+    if (countdown > 0) {
+      timerDisplay.textContent = `Claim available in: ${countdown}s`;
+      claimBtn.disabled = true;
+      countdown--;
+    } else {
+      timerDisplay.textContent = 'Claim is available!';
+      claimBtn.disabled = false;
+      claimAvailable = true;
+    }
+  }
+
+  claimBtn.addEventListener('click', () => {
+    if (claimAvailable) {
+      money += 200;
+      updateMoneyDisplay();
+      claimAvailable = false;
+      countdown = 60;
+      claimBtn.disabled = true;
+      updateTimer();
+      updateUpgradeButton();
+    }
+  });
+
+  // Weighted random reward function
+  // Returns number between 100 and 1000 with bigger numbers rarer
+  function getWeightedRandomReward() {
+    const rand = Math.random() * 100;
+    if (rand < 60) {
+      return Math.floor(100 + Math.random() * 201); // 100-300
+    } else if (rand < 90) {
+      return Math.floor(301 + Math.random() * 300); // 301-600
+    } else if (rand < 99) {
+      return Math.floor(601 + Math.random() * 300); // 601-900
+    } else {
+      return Math.floor(901 + Math.random() * 100); // 901-1000
+    }
+  }
+
+  function startAdCooldown() {
+    adCooldownSeconds = 120; // 2 minutes cooldown
+    adButton.disabled = true;
+    adCooldownDisplay.style.display = 'block';
+    updateCooldownDisplay();
+
+    adCooldownInterval = setInterval(() => {
+      adCooldownSeconds--;
+      if (adCooldownSeconds <= 0) {
+        clearInterval(adCooldownInterval);
+        adCooldownDisplay.style.display = 'none';
+        adButton.disabled = false;
+        adClicks = 0;
+        adClicksDisplay.textContent = `Clicks: ${adClicks} / 50`;
+      } else {
+        updateCooldownDisplay();
+      }
+    }, 1000);
+  }
+
+  function updateCooldownDisplay() {
+    const minutes = Math.floor(adCooldownSeconds / 60);
+    const seconds = adCooldownSeconds % 60;
+    adCooldownDisplay.textContent = `Ad cooldown: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  adButton.addEventListener('click', () => {
+    if (adButton.disabled) return;
+
+    adClicks++;
+    adClicksDisplay.textContent = `Clicks: ${adClicks} / 50`;
+    if (adClicks === 50) {
+      const reward = getWeightedRandomReward();
+      money += reward;
+      updateMoneyDisplay();
+      alert(`Congrats! You earned £${reward} for 50 ad clicks!`);
+      startAdCooldown();
+      updateUpgradeButton();
+    }
+  });
+
+  resetBtn.addEventListener('click', () => {
+    if (confirm('Are you sure you want to reset all progress?')) {
+      money = 0;
+      clickPower = 0;
+      upgradeCost = 50;
+      adClicks = 0;
+      claimAvailable = false;
+      countdown = 60;
+      clearInterval(adCooldownInterval);
+      adCooldownDisplay.style.display = 'none';
+      adButton.disabled = false;
+      claimBtn.disabled = true;
+      setButtonsLocked(true);
+      updateMoneyDisplay();
+      updateUpgradeButton();
+      adClicksDisplay.textContent = `Clicks: ${adClicks} / 50`;
+      updateTimer();
+      codeInput.value = '';
+    }
+  });
+
+  updateMoneyDisplay();
+  updateTimer();
+  updateUpgradeButton();
+  setButtonsLocked(true);
+
+  // Run timer every second
+  setInterval(updateTimer, 1000);
+</script>
+
+</body>
+</html>
